@@ -8,7 +8,5 @@ def main():
     window.show()
     sys.exit(application.exec())
 
-    
-
 if __name__ == "__main__":
     main()

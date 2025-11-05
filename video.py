@@ -1,7 +1,7 @@
 import cv2
 from ultralytics import YOLO
 
-def video_process(pathin, pathout):
+def video_process(pathin, pathout, model_path, progress_bar=None):
     video = cv2.VideoCapture(pathin)
     fps = video.get(cv2.CAP_PROP_FPS)
     width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))  
@@ -9,18 +9,21 @@ def video_process(pathin, pathout):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     
     video_out = cv2.VideoWriter(pathout, fourcc, fps, (width, height))
-    
-    model = YOLO("yolov8l.pt")
+    try:
+        model = YOLO(model_path)
+    except:
+        raise Exception("Error. Ошибка загрузки весов, убедитесь, что выбрали правильный файл.")
     if not video.isOpened():
-        raise Exception({"message": "Error opening video file", "error": "VideoOpen"})
+        raise Exception("Error. Ошибка открытия видео, убедитесь что вы выбрали правильный файл.")
     frames_count = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
     for i in range(frames_count):
-        print(f"{i}/{frames_count}")
+        if progress_bar:
+            progress_bar.setValue(int(i / frames_count * 100))
         ret, frame = video.read()
         if not ret:
-            raise Exception({"message": "Error read frame", "error": "FrameRead"})
+            raise Exception("Error. Ошибка чтения видео, убедитесь что вы выбрали правильный файл.")
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        detected_frame = model.predict(source=rgb_frame, conf=0.2, iou=0.7, classes=[0], save=False)
+        detected_frame = model.predict(source=rgb_frame, conf=0.2, iou=0.7, classes=[0], save=False, verbose=False)
 
         boxes = detected_frame[0].boxes
 
@@ -35,7 +38,6 @@ def video_process(pathin, pathout):
         video_out.write(frame)
     video.release()
     video_out.release()
-
 
 if __name__ == "__main__":
     video_process("crowd.mp4", "new.mp4")
