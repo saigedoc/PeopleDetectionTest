@@ -1,0 +1,4 @@
+opencv-python==4.11.0.86
+PyQt6==6.10.0
+pyqt6_sip==13.10.2
+ultralytics==8.3.112
